@@ -129,7 +129,7 @@ def create_poster_client_full(user_id):
                 add_poster_bonus(new_client['client_id'], local_discount)
                 db_manage_user(user_id, discount=0)
                 try:
-                    bot.send_message(user_id, f"💸 Твої натапані **{local_discount} грн** успішно перенесені на бонусну карту Poster!", parse_mode="Markdown")
+                    bot.send_message(user_id, f"💸 Твої натапані та подарункові **{local_discount} грн** успішно перенесені на бонусну карту Poster!", parse_mode="Markdown")
                 except: pass
             
     return res
@@ -251,28 +251,28 @@ CATEGORIES = {
 }
 
 PRODUCTS = {
-    "100": {"poster_id": 100, "name": "Бургер Houston", "price": 299, "image": "houston.jpg", "category": "burgers", "short": "Класичний смак Burger Chef", "info": "🍔 **Бургер Houston:** Соковита котлета, свіжі овочі та фірмовий соус."},
-    "101": {"poster_id": 101, "name": "Бургер N.Y. Doubt", "price": 279, "image": "ny.jpg", "category": "burgers", "short": "Нью-Йоркський стиль", "info": "🍔 **Бургер N.Y. Doubt:** Для тих, хто цінує класику великого міста."},
-    "102": {"poster_id": 102, "name": "Бургер Magnum", "price": 279, "image": "magnum.jpg", "category": "burgers", "short": "Великий та ситний", "info": "🍔 **Бургер Magnum:** Подвійна порція задоволення."},
-    "103": {"poster_id": 103, "name": "Бургер Big Tasty", "price": 299, "image": "tasty.jpg", "category": "burgers", "short": "Легендарний смак", "info": "🍔 **Бургер Big Tasty:** Спеціальний соус та багато сиру."},
-    "104": {"poster_id": 104, "name": "Бургер Toro", "price": 319, "image": "toro.jpg", "category": "burgers", "short": "Преміальна яловичина", "info": "🍔 **Бургер Toro:** Вишуканий вибір для гурманів."},
-    "105": {"poster_id": 105, "name": "Бургер Cheesebiz", "price": 269, "image": "cheesebiz.jpg", "category": "burgers", "short": "Сирний вибух", "info": "🍔 **Бургер Cheesebiz:** Сир, сир і ще раз сир!"},
-    "106": {"poster_id": 106, "name": "Локшина WOK з морепродуктами", "price": 329, "image": "wok_sea.jpg", "category": "wok", "short": "Дари моря у вашій коробочці", "info": "🥢 **WOK з морепродуктами:** Креветки, мідії та овочі."},
-    "107": {"poster_id": 107, "name": "Локшина WOK з куркою", "price": 259, "image": "wok_chick.jpg", "category": "wok", "short": "Класичний вок", "info": "🥢 **WOK з куркою:** Ніжне філе та хрусткі овочі."},
-    "108": {"poster_id": 108, "name": "Локшина WOK з телятиною", "price": 279, "image": "wok_beef.jpg", "category": "wok", "short": "Ситна вечеря", "info": "🥢 **WOK з телятиною:** Тонко нарізана яловичина в соусі."},
-    "109": {"poster_id": 109, "name": "Локшина WOK з грибами", "price": 239, "image": "wok_mush.jpg", "category": "wok", "short": "Для вегетаріанців", "info": "🥢 **WOK з грибами:** Ароматні гриби та овочі."},
-    "110": {"poster_id": 110, "name": "Смажені китайські пельмені", "price": 259, "image": "dumplings.jpg", "category": "wok", "short": "Хрустка скоринка", "info": "🥢 **Смажені пельмені:** Традиційний азійський смак."},
-    "111": {"poster_id": 111, "name": "Суп Том Ям", "price": 319, "image": "tomyum.jpg", "category": "soups", "short": "Гострий та пряний", "info": "🍲 **Пікантний суп Том Ям:** Традиційний тайський смак."},
-    "112": {"poster_id": 112, "name": "Курка у кисло-солодкому", "price": 239, "image": "sweet_sour.jpg", "category": "soups", "short": "Класика Азії", "info": "🍲 **Курка у кисло-солодкому:** З ананасами та перцем."},
-    "113": {"poster_id": 113, "name": "Гостра курка Ся", "price": 259, "image": "spicy_chick.jpg", "category": "soups", "short": "Пікантний смак", "info": "🍲 **Гостра курка Ся:** Для тих, хто любить гостре."},
-    "114": {"poster_id": 114, "name": "Сир фрі", "price": 229, "image": "cheese.jpg", "category": "snacks", "short": "Тягучий сир", "info": "🍟 **Сир фрі:** Ідеальна закуска до напоїв."},
-    "115": {"poster_id": 115, "name": "Курячі стріпси", "price": 219, "image": "strips.jpg", "category": "snacks", "short": "Хрустка скоринка", "info": "🍗 **Курячі стріпси:** Ніжне м'ясо в паніровці."},
-    "116": {"poster_id": 116, "name": "Картопля фрі", "price": 179, "image": "fries.jpg", "category": "snacks", "short": "Класика", "info": "🍟 **Картопля фрі:** Завжди доречна."},
-    "117": {"poster_id": 117, "name": "Картопляні діпи", "price": 199, "image": "dippers.jpg", "category": "snacks", "short": "Зі спеціями", "info": "🍟 **Картопляні діпи:** Ароматні скибочки."},
-    "118": {"poster_id": 118, "name": "Торт Наполеон", "price": 140, "image": "napoleon.jpg", "category": "desserts", "short": "Класичний десерт", "info": "🍰 **Наполеон:** Багато шарів ніжного крему."},
-    "119": {"poster_id": 119, "name": "Торт Медовик", "price": 140, "image": "medovik.jpg", "category": "desserts", "short": "Домашній смак", "info": "🍰 **Медовик:** Ароматний мед та вершковий крем."},
-    "120": {"poster_id": 120, "name": "Торт Чізкейк", "price": 140, "image": "cheesecake.jpg", "category": "desserts", "short": "Ніжна текстура", "info": "🍰 **Чізкейк:** Класичний сирний десерт."},
-    "121": {"poster_id": 121, "name": "Торт Медовик з горіхами", "price": 140, "image": "medovik_nuts.jpg", "category": "desserts", "short": "Горіховий смак", "info": "🍰 **Медовик з горіхами:** Спеціальний рецепт."}
+    "100": {"poster_id": 100, "name": "Бургер Houston", "price": 299, "image": "houston.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Класичний смак Burger Chef", "info": "🍔 **Бургер Houston:** Соковита котлета, свіжі овочі та фірмовий соус."},
+    "101": {"poster_id": 101, "name": "Бургер N.Y. Doubt", "price": 279, "image": "ny.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Нью-Йоркський стиль", "info": "🍔 **Бургер N.Y. Doubt:** Для тих, хто цінує класику великого міста."},
+    "102": {"poster_id": 102, "name": "Бургер Magnum", "price": 279, "image": "magnum.jpg", "category": "burgers", "prep_time": "12-15 хв", "short": "Великий та ситний", "info": "🍔 **Бургер Magnum:** Подвійна порція задоволення."},
+    "103": {"poster_id": 103, "name": "Бургер Big Tasty", "price": 299, "image": "tasty.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Легендарний смак", "info": "🍔 **Бургер Big Tasty:** Спеціальний соус та багато сиру."},
+    "104": {"poster_id": 104, "name": "Бургер Toro", "price": 319, "image": "toro.jpg", "category": "burgers", "prep_time": "12-18 хв", "short": "Преміальна яловичина", "info": "🍔 **Бургер Toro:** Вишуканий вибір для гурманів."},
+    "105": {"poster_id": 105, "name": "Бургер Cheesebiz", "price": 269, "image": "cheesebiz.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Сирний вибух", "info": "🍔 **Бургер Cheesebiz:** Сир, сир і ще раз сир!"},
+    "106": {"poster_id": 106, "name": "Локшина WOK з морепродуктами", "price": 329, "image": "wok_sea.jpg", "category": "wok", "prep_time": "15-20 хв", "short": "Дари моря у вашій коробочці", "info": "🥢 **WOK з морепродуктами:** Креветки, мідії та овочі."},
+    "107": {"poster_id": 107, "name": "Локшина WOK з куркою", "price": 259, "image": "wok_chick.jpg", "category": "wok", "prep_time": "12-18 хв", "short": "Класичний вок", "info": "🥢 **WOK з куркою:** Ніжне філе та хрусткі овочі."},
+    "108": {"poster_id": 108, "name": "Локшина WOK з телятиною", "price": 279, "image": "wok_beef.jpg", "category": "wok", "prep_time": "15-20 хв", "short": "Ситна вечеря", "info": "🥢 **WOK з телятиною:** Тонко нарізана яловичина в соусі."},
+    "109": {"poster_id": 109, "name": "Локшина WOK з грибами", "price": 239, "image": "wok_mush.jpg", "category": "wok", "prep_time": "12-15 хв", "short": "Для вегетаріанців", "info": "🥢 **WOK з грибами:** Ароматні гриби та овочі."},
+    "110": {"poster_id": 110, "name": "Смажені китайські пельмені", "price": 259, "image": "dumplings.jpg", "category": "wok", "prep_time": "15-18 хв", "short": "Хрустка скоринка", "info": "🥢 **Смажені пельмені:** Традиційний азійський смак."},
+    "111": {"poster_id": 111, "name": "Суп Том Ям", "price": 319, "image": "tomyum.jpg", "category": "soups", "prep_time": "10-12 хв", "short": "Гострий та пряний", "info": "🍲 **Пікантний суп Том Ям:** Традиційний тайський смак."},
+    "112": {"poster_id": 112, "name": "Курка у кисло-солодкому", "price": 239, "image": "sweet_sour.jpg", "category": "soups", "prep_time": "12-15 хв", "short": "Класика Азії", "info": "🍲 **Курка у кисло-солодкому:** З ананасами та перцем."},
+    "113": {"poster_id": 113, "name": "Гостра курка Ся", "price": 259, "image": "spicy_chick.jpg", "category": "soups", "prep_time": "12-15 хв", "short": "Пікантний смак", "info": "🍲 **Гостра курка Ся:** Для тих, хто любить гостре."},
+    "114": {"poster_id": 114, "name": "Сир фрі", "price": 229, "image": "cheese.jpg", "category": "snacks", "prep_time": "5-8 хв", "short": "Тягучий сир", "info": "🍟 **Сир фрі:** Ідеальна закуска до напоїв."},
+    "115": {"poster_id": 115, "name": "Курячі стріпси", "price": 219, "image": "strips.jpg", "category": "snacks", "prep_time": "6-10 хв", "short": "Хрустка скоринка", "info": "🍗 **Курячі стріпси:** Ніжне м'ясо в паніровці."},
+    "116": {"poster_id": 116, "name": "Картопля фрі", "price": 179, "image": "fries.jpg", "category": "snacks", "prep_time": "5-7 хв", "short": "Класика", "info": "🍟 **Картопля фрі:** Завжди доречна."},
+    "117": {"poster_id": 117, "name": "Картопляні діпи", "price": 199, "image": "dippers.jpg", "category": "snacks", "prep_time": "5-7 хв", "short": "Зі спеціями", "info": "🍟 **Картопляні діпи:** Ароматні скибочки."},
+    "118": {"poster_id": 118, "name": "Торт Наполеон", "price": 140, "image": "napoleon.jpg", "category": "desserts", "prep_time": "1-3 хв", "short": "Класичний десерт", "info": "🍰 **Наполеон:** Багато шарів ніжного крему."},
+    "119": {"poster_id": 119, "name": "Торт Медовик", "price": 140, "image": "medovik.jpg", "category": "desserts", "prep_time": "1-3 хв", "short": "Домашній смак", "info": "🍰 **Медовик:** Ароматний мед та вершковий крем."},
+    "120": {"poster_id": 120, "name": "Торт Чізкейк", "price": 140, "image": "cheesecake.jpg", "category": "desserts", "prep_time": "1-3 хв", "short": "Ніжна текстура", "info": "🍰 **Чізкейк:** Класичний сирний десерт."},
+    "121": {"poster_id": 121, "name": "Торт Медовик з горіхами", "price": 140, "image": "medovik_nuts.jpg", "category": "desserts", "prep_time": "1-3 хв", "short": "Горіховий смак", "info": "🍰 **Медовик з горіхами:** Спеціальний рецепт."}
 }
 
 DOSAGE_DATA = {
@@ -293,16 +293,17 @@ def send_product_card(chat_id, key):
     stock = db_get_stock(key)
     markup = types.InlineKeyboardMarkup(row_width=1)
     if stock > 0:
-        stock_text = f"🟢 В наявності: {stock} порцій"
+        prep_time = item.get('prep_time', '15-20 хв')
+        stock_text = f"⏳ Приблизний час приготування: {prep_time}"
         markup.add(
             types.InlineKeyboardButton(f"🛒 Додати в кошик ({item['price']} грн)", callback_data=f"buy_{key}"),
             types.InlineKeyboardButton("🔍 Дізнатись більше", callback_data=f"info_{key}")
         )
     else:
-        stock_text = "🔴 Немає в наявності"
+        stock_text = "🔴 Тимчасово недоступно"
         markup.add(types.InlineKeyboardButton("🔍 Дізнатись більше", callback_data=f"info_{key}"))
 
-    caption = f"🏷 **{item['name']}**\n\n📝 {item['short']}\n📦 {stock_text}\n💰 **Ціна: {item['price']} грн**"
+    caption = f"🏷 **{item['name']}**\n\n📝 {item['short']}\n{stock_text}\n💰 **Ціна: {item['price']} грн**"
     try:
         if os.path.exists(item['image']):
             with open(item['image'], 'rb') as photo: bot.send_photo(chat_id, photo, caption=caption, reply_markup=markup, parse_mode="Markdown")
@@ -331,6 +332,7 @@ def contact_menu():
     m.add("⬅️ Назад до меню")
     return m
 
+# --- ОНОВЛЕНИЙ СТАРТ З КВЕСТОМ ---
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.chat.id
@@ -345,7 +347,19 @@ def start(message):
                 c.execute("UPDATE users SET referred_by = ? WHERE user_id = ?", (referrer_id, user_id))
                 conn.commit()
 
-    bot.send_message(user_id, "🍔 Вітаємо у ресторані Burger Chef! Оберіть пункт меню:", reply_markup=main_menu())
+    # Якщо в користувача ще немає телефону (він новий) - запускаємо квест!
+    if user_data[0] is None:
+        user_data_cache[user_id] = {'step': 'quest_step_1'}
+        bot.send_message(
+            user_id, 
+            "🍔 Вітаємо у ресторані Burger Chef!\n\n"
+            "🎁 **WELCOME QUEST:** Пройди швидке навчання та отримай **20 грн** на бонусний рахунок!\n\n"
+            "👉 **Крок 1:** Зазирни у '📂 Каталог', подивись наші Бургери і напиши мені сюди назву того, який сподобався найбільше!", 
+            reply_markup=main_menu(),
+            parse_mode="Markdown"
+        )
+    else:
+        bot.send_message(user_id, "🍔 Вітаємо знову у Burger Chef! Оберіть пункт меню:", reply_markup=main_menu())
 
 @bot.message_handler(func=lambda m: m.text == "⬅️ Назад до меню")
 def back_to_menu(message):
@@ -386,7 +400,7 @@ def handle_contact(message):
             if user_db[1] > 0:
                 add_poster_bonus(client_poster['client_id'], user_db[1])
                 db_manage_user(user_id, discount=0)
-                bot.send_message(user_id, f"💸 Твої натапані **{user_db[1]} грн** автоматично перенесені на бонусну карту Poster!", parse_mode="Markdown")
+                bot.send_message(user_id, f"💸 Твої натапані та подарункові **{user_db[1]} грн** автоматично перенесені на бонусну карту Poster!", parse_mode="Markdown")
             
             display_profile(message, phone, db_manage_user(user_id)[1])
             del user_data_cache[user_id]
@@ -400,7 +414,7 @@ def handle_contact(message):
             if user_db[1] > 0:
                 add_poster_bonus(client_poster['client_id'], user_db[1])
                 db_manage_user(user_id, discount=0)
-                bot.send_message(user_id, f"💸 Твої натапані **{user_db[1]} грн** автоматично перенесені на бонусну карту Poster!", parse_mode="Markdown")
+                bot.send_message(user_id, f"💸 Твої натапані та подарункові **{user_db[1]} грн** автоматично перенесені на бонусну карту Poster!", parse_mode="Markdown")
         bot.send_message(user_id, "Номер збережено.", reply_markup=main_menu())
 
 def display_profile(message, phone, game_discount):
@@ -509,9 +523,9 @@ def item_actions(call):
     action, key = call.data.split("_", 1)
     if action == "buy":
         if db_add_to_cart_with_reserve(call.message.chat.id, key):
-            bot.answer_callback_query(call.id, f"✅ {PRODUCTS[key]['name']} заброньовано на 15 хв!")
+            bot.answer_callback_query(call.id, f"✅ {PRODUCTS[key]['name']} додано в кошик!")
         else:
-            bot.answer_callback_query(call.id, "❌ Недостатньо товару!", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ Тимчасово недоступно!", show_alert=True)
     elif action == "info":
         bot.answer_callback_query(call.id)
         bot.send_message(call.message.chat.id, PRODUCTS[key]['info'], parse_mode="Markdown")
@@ -592,7 +606,7 @@ def mod_cart(call):
     key = call.data.split("_", 1)[1]
     if call.data.startswith("cadd_"):
         if not db_add_to_cart_with_reserve(call.message.chat.id, key):
-            bot.answer_callback_query(call.id, "❌ Немає в наявності!", show_alert=True); return
+            bot.answer_callback_query(call.id, "❌ Тимчасово недоступно!", show_alert=True); return
     elif call.data.startswith("crem_"): db_remove_one_from_cart(call.message.chat.id, key)
     bot.answer_callback_query(call.id); render_cart(call.message.chat.id, call.message.message_id)
 
@@ -889,7 +903,29 @@ def handle_all_text(message):
         state = user_data_cache[user_id]
         step = state['step']
 
-        if step == 'register_name':
+        # ЛОГІКА КВЕСТУ
+        if step == 'quest_step_1':
+            # Якщо людина тицяє меню, дозволяємо їй це робити
+            if text in ["📂 Каталог", "🛒 Кошик", "🧮 Калькулятор ситості", "👤 Профіль", "🍀 Натапати знижку", "📞 Консультант", "📰 Новини", "⬅️ Назад до меню"]:
+                pass 
+            else:
+                # Вважаємо будь-який інший текст відповіддю на квест
+                user_db = db_manage_user(user_id)
+                current_discount = user_db[1] if user_db[1] else 0
+                db_manage_user(user_id, discount=current_discount + 20) # Даємо 20 грн локально
+                
+                state['step'] = 'register_phone'
+                bot.send_message(
+                    user_id, 
+                    f"🍔 Ооо, **{text}** — це справді топчик!\n\n"
+                    f"🎉 Тобі нараховано вітальні **20 грн**!\n\n"
+                    f"👉 **Крок 2 (Останній):** Натисни кнопку нижче, щоб поділитися номером телефону. Ми створимо тобі бонусну карту і закинемо туди ці гроші!", 
+                    reply_markup=contact_menu(),
+                    parse_mode="Markdown"
+                )
+                return
+
+        elif step == 'register_name':
             state['name'] = text
             state['step'] = 'register_sex'
             m = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -968,7 +1004,7 @@ def handle_all_text(message):
     history = db_manage_history(user_id)
     db_manage_history(user_id, "user", message.text)
     avail = [f"{k}: {p['name']} ({p['price']}грн)" for k, p in PRODUCTS.items() if db_get_stock(k) > 0]
-    system_prompt = f"Ти Burger Chef AI. В наявності: {', '.join(avail)}. Вказуй 'Код' в [код]."
+    system_prompt = f"Ти Burger Chef AI. У меню доступно: {', '.join(avail)}. Вказуй 'Код' в [код]."
     
     try:
         response = client.chat.completions.create(model="gpt-4o", messages=[{"role": "system", "content": system_prompt}] + history + [{"role": "user", "content": message.text}])
