@@ -1,70 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Cafe Tycoon</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <title>Sweetbucks Coffee</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <!-- HUD -->
+
+  <!-- TOP HUD -->
   <div id="hud">
     <div id="hud-left">
-      <div id="money-display">
-        <span class="hud-icon">💰</span>
-        <span id="money-amount">0</span>
+      <div class="hud-chip gold-chip">
+        <span>🪙</span><span id="money-val">0</span>
       </div>
-      <div id="level-display">
-        <span class="hud-icon">⭐</span>
-        <span id="level-amount">Lv.1</span>
+      <div class="hud-chip brown-chip">
+        <span>⭐</span><span id="level-val">Lv 1</span>
       </div>
     </div>
+    <div id="hud-logo">☕ SWEETBUCKS</div>
     <div id="hud-right">
-      <button id="shop-btn" class="hud-btn">🛒 Shop</button>
+      <button id="shop-btn">🛒</button>
     </div>
   </div>
 
-  <!-- Canvas -->
+  <!-- GAME CANVAS -->
   <canvas id="gameCanvas"></canvas>
 
-  <!-- Virtual Joystick -->
-  <div id="joystick-zone">
-    <div id="joystick-base">
-      <div id="joystick-knob"></div>
-    </div>
+  <!-- JOYSTICK -->
+  <div id="joy-zone">
+    <div id="joy-base"><div id="joy-knob"></div></div>
   </div>
 
-  <!-- Claim Button -->
-  <div id="claim-bar">
+  <!-- ACTION BTN -->
+  <div id="act-zone">
+    <button id="act-btn">
+      <div id="act-icon">✋</div>
+      <div id="act-lbl">ACT</div>
+    </button>
+  </div>
+
+  <!-- BOTTOM CLAIM -->
+  <div id="bottom-bar">
     <button id="claim-btn">💸 Забрати зароблене в бота</button>
   </div>
 
-  <!-- Shop Overlay -->
-  <div id="shop-overlay" class="hidden">
-    <div id="shop-panel">
-      <div id="shop-header">
-        <h2>🛒 Upgrades</h2>
-        <button id="shop-close">✕</button>
+  <!-- SHOP SHEET -->
+  <div id="shop-wrap" class="hidden">
+    <div id="shop-scrim"></div>
+    <div id="shop-sheet">
+      <div id="shop-top">
+        <span id="shop-heading">☕ Upgrades</span>
+        <span id="shop-coins">🪙 <b id="shop-bal">0</b></span>
+        <button id="shop-x">✕</button>
       </div>
-      <div id="shop-balance">
-        <span>💰 Balance: </span><span id="shop-money">0</span>
-      </div>
-      <div id="shop-items"></div>
+      <div id="shop-list"></div>
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- TOAST -->
   <div id="toast"></div>
 
-  <!-- Start Screen -->
-  <div id="start-screen">
-    <div id="start-panel">
-      <div id="start-logo">☕</div>
-      <h1 id="start-title">CAFE TYCOON</h1>
-      <p id="start-sub">Run your dream restaurant!</p>
-      <button id="start-btn">▶ Start Game</button>
+  <!-- START SCREEN -->
+  <div id="splash">
+    <div id="splash-bg"></div>
+    <div id="splash-card">
+      <div id="splash-sign">
+        <div id="sign-board">
+          <div id="sign-stripe"></div>
+          <div id="sign-text">☕ SWEETBUCKS COFFEE</div>
+        </div>
+        <div id="sign-counter"></div>
+        <div id="sign-cups">
+          <span class="cup">☕</span>
+          <span class="cup big">☕</span>
+          <span class="cup">☕</span>
+        </div>
+      </div>
+      <h1 id="splash-title">SWEETBUCKS</h1>
+      <p id="splash-sub">Run the busiest coffee shop in town!</p>
+      <div id="splash-tags">
+        <span class="tag">☕ Brew</span>
+        <span class="tag">🏃 Serve</span>
+        <span class="tag">💰 Earn</span>
+        <span class="tag">⬆️ Upgrade</span>
+      </div>
+      <button id="splash-btn">▶ Open Shop</button>
     </div>
   </div>
 
