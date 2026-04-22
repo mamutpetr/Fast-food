@@ -322,7 +322,6 @@ def main_menu():
     m = types.ReplyKeyboardMarkup(resize_keyboard=True)
     m.row("📂 Каталог", "🛒 Кошик")
     m.row("🧮 Калькулятор ситості", "👤 Профіль")
-    m.row(types.KeyboardButton("🍀 Натапати знижку", web_app=types.WebAppInfo(url=WEB_APP_URL)))
     m.row("📞 Консультант", "📰 Новини")
     return m
 
