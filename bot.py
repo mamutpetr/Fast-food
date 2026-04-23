@@ -16,7 +16,8 @@ TOKEN = os.getenv("BOT_TOKEN")
 PAYMENT_TOKEN = os.getenv("PAYMENT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ADMIN_ID = os.getenv("ADMIN_ID") 
-WEB_APP_URL = "https://mamutpetr.github.io/Pinkcanna/"
+# НОВЕ ПОСИЛАННЯ НА ТАПАЛКУ
+WEB_APP_URL = "https://mamutpetr.github.io/Fast-food/"
 
 # --- POSTER API ---
 POSTER_TOKEN = os.getenv("POSTER_TOKEN")
@@ -323,6 +324,7 @@ def main_menu():
     m = types.ReplyKeyboardMarkup(resize_keyboard=True)
     m.row("📂 Каталог", "🛒 Кошик")
     m.row("🧮 Калькулятор ситості", "👤 Профіль")
+    m.row(types.KeyboardButton("🍔 Натапати знижку", web_app=types.WebAppInfo(url=WEB_APP_URL)))
     m.row("📞 Консультант", "📰 Новини")
     return m
 
@@ -548,11 +550,11 @@ def get_discount(message):
                 if client_poster:
                     add_poster_bonus(client_poster['client_id'], disc)
                     db_manage_user(user_id, discount=0)
-                    bot.send_message(user_id, f"🍀 Супер! **{disc} грн** успішно зараховано на твій бонусний рахунок у Poster!", parse_mode="Markdown")
+                    bot.send_message(user_id, f"🍔 Супер! **{disc} грн** успішно зараховано на твій бонусний рахунок у Poster!", parse_mode="Markdown")
                     return
             
             db_manage_user(user_id, discount=disc)
-            bot.send_message(user_id, f"🍀 Супер! Знижка **{disc} грн** збережена.\n\n⚠️ Обов'язково зареєструй **👤 Профіль**, щоб ці гроші перейшли в Poster і їх можна було використати на касі!", parse_mode="Markdown")
+            bot.send_message(user_id, f"🍔 Супер! Знижка **{disc} грн** збережена.\n\n⚠️ Обов'язково зареєструй **👤 Профіль**, щоб ці гроші перейшли в Poster і їх можна було використати на касі!", parse_mode="Markdown")
     except Exception as e:
         print("Помилка тапалки:", e)
 
@@ -906,7 +908,7 @@ def handle_all_text(message):
         # ЛОГІКА КВЕСТУ
         if step == 'quest_step_1':
             # Якщо людина тицяє меню, дозволяємо їй це робити
-            if text in ["📂 Каталог", "🛒 Кошик", "🧮 Калькулятор ситості", "👤 Профіль", "🍀 Натапати знижку", "📞 Консультант", "📰 Новини", "⬅️ Назад до меню"]:
+            if text in ["📂 Каталог", "🛒 Кошик", "🧮 Калькулятор ситості", "👤 Профіль", "🍔 Натапати знижку", "📞 Консультант", "📰 Новини", "⬅️ Назад до меню"]:
                 pass 
             else:
                 # Вважаємо будь-який інший текст відповіддю на квест
@@ -983,7 +985,7 @@ def handle_all_text(message):
             send_invoice(user_id)
             return
 
-    if message.text in ["📂 Каталог", "🛒 Кошик", "📞 Консультант", "🍀 Натапати знижку", "📰 Новини", "🧮 Калькулятор ситості", "👤 Профіль"]: 
+    if message.text in ["📂 Каталог", "🛒 Кошик", "📞 Консультант", "🍔 Натапати знижку", "📰 Новини", "🧮 Калькулятор ситості", "👤 Профіль"]: 
         if message.text == "📰 Новини": 
             return bot.send_message(message.chat.id, "🍔 Burger Chef вітає вас! В нас найсмачніші бургери та WOK у місті.")
         if message.text == "📞 Консультант":
@@ -1019,3 +1021,4 @@ def handle_all_text(message):
 if __name__ == "__main__":
     init_db()
     bot.infinity_polling()
+
