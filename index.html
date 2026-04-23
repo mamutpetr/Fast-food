@@ -1,97 +1,128 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <title>Sweetbucks Coffee</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Burger Chef Tap</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            margin: 0; padding: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; height: 100vh;
+            overflow: hidden; font-family: 'Arial', sans-serif;
+            /* Твій новий фон */
+            background: url('1776935759982.png') no-repeat center center;
+            background-size: cover; color: white; user-select: none;
+        }
+
+        #score-container {
+            position: absolute; top: 8%; font-size: 42px; font-weight: bold;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.6); padding: 10px 40px;
+            border-radius: 50px; border: 2px solid #ffaa00; /* Ресторанний оранжевий */
+            z-index: 10;
+        }
+
+        #coin {
+            width: 300px; height: 300px;
+            /* Твоя нова монетка/бургер */
+            background: url('1776935142450.png') no-repeat center center;
+            background-size: contain; cursor: pointer;
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.6));
+            transition: transform 0.05s ease-out;
+            will-change: transform;
+        }
+
+        /* Клас для ефекту пульсації */
+        .pulse {
+            transform: scale(1.15);
+        }
+
+        #claim-btn {
+            position: absolute; bottom: 40px; padding: 18px 35px;
+            background: #ffaa00; border: none; border-radius: 30px;
+            font-size: 20px; font-weight: bold; color: #000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer;
+        }
+
+        .tap-anim {
+            position: absolute; color: #ffaa00; font-size: 40px; font-weight: bold;
+            pointer-events: none; animation: moveUp 0.6s ease-out forwards;
+            text-shadow: 2px 2px 5px black;
+            z-index: 100;
+        }
+
+        @keyframes moveUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-150px) scale(1.5); }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- TOP HUD -->
-  <div id="hud">
-    <div id="hud-left">
-      <div class="hud-chip gold-chip">
-        <span>🪙</span><span id="money-val">0</span>
-      </div>
-      <div class="hud-chip brown-chip">
-        <span>⭐</span><span id="level-val">Lv 1</span>
-      </div>
-    </div>
-    <div id="hud-logo">☕ SWEETBUCKS</div>
-    <div id="hud-right">
-      <button id="shop-btn">🛒</button>
-    </div>
-  </div>
+    <div id="score-container">🍔 <span id="score">0</span></div>
+    <div id="coin"></div>
+    <button id="claim-btn">Обміняти на знижку 💰</button>
 
-  <!-- GAME CANVAS -->
-  <canvas id="gameCanvas"></canvas>
+    <audio id="click-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
 
-  <!-- JOYSTICK -->
-  <div id="joy-zone">
-    <div id="joy-base"><div id="joy-knob"></div></div>
-  </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-  <!-- ACTION BTN -->
-  <div id="act-zone">
-    <button id="act-btn">
-      <div id="act-icon">✋</div>
-      <div id="act-lbl">ACT</div>
-    </button>
-  </div>
+        let score = parseInt(localStorage.getItem('burger_score')) || 0;
+        const scoreElement = document.getElementById('score');
+        const coin = document.getElementById('coin');
+        const claimBtn = document.getElementById('claim-btn');
+        const clickSound = document.getElementById('click-sound');
 
-  <!-- BOTTOM CLAIM -->
-  <div id="bottom-bar">
-    <button id="claim-btn">💸 Забрати зароблене в бота</button>
-  </div>
+        scoreElement.innerText = score;
 
-  <!-- SHOP SHEET -->
-  <div id="shop-wrap" class="hidden">
-    <div id="shop-scrim"></div>
-    <div id="shop-sheet">
-      <div id="shop-top">
-        <span id="shop-heading">☕ Upgrades</span>
-        <span id="shop-coins">🪙 <b id="shop-bal">0</b></span>
-        <button id="shop-x">✕</button>
-      </div>
-      <div id="shop-list"></div>
-    </div>
-  </div>
+        function handleTap(x, y) {
+            score++;
+            scoreElement.innerText = score;
+            localStorage.setItem('burger_score', score);
+            
+            // Ефект пульсації
+            coin.classList.add('pulse');
+            setTimeout(() => coin.classList.remove('pulse'), 50);
 
-  <!-- TOAST -->
-  <div id="toast"></div>
+            // Відтворення звуку
+            clickSound.currentTime = 0;
+            clickSound.play().catch(() => {}); // Ігноруємо помилки автоплею
 
-  <!-- START SCREEN -->
-  <div id="splash">
-    <div id="splash-bg"></div>
-    <div id="splash-card">
-      <div id="splash-sign">
-        <div id="sign-board">
-          <div id="sign-stripe"></div>
-          <div id="sign-text">☕ SWEETBUCKS COFFEE</div>
-        </div>
-        <div id="sign-counter"></div>
-        <div id="sign-cups">
-          <span class="cup">☕</span>
-          <span class="cup big">☕</span>
-          <span class="cup">☕</span>
-        </div>
-      </div>
-      <h1 id="splash-title">SWEETBUCKS</h1>
-      <p id="splash-sub">Run the busiest coffee shop in town!</p>
-      <div id="splash-tags">
-        <span class="tag">☕ Brew</span>
-        <span class="tag">🏃 Serve</span>
-        <span class="tag">💰 Earn</span>
-        <span class="tag">⬆️ Upgrade</span>
-      </div>
-      <button id="splash-btn">▶ Open Shop</button>
-    </div>
-  </div>
+            // Вилітаюча цифра
+            const txt = document.createElement('div');
+            txt.innerText = '+1';
+            txt.className = 'tap-anim';
+            txt.style.left = x + 'px';
+            txt.style.top = y + 'px';
+            document.body.appendChild(txt);
+            setTimeout(() => txt.remove(), 600);
+            
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        }
 
-  <script src="game.js"></script>
+        coin.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Обробляємо кожен палець окремо (мультитач)
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                handleTap(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            }
+        });
+
+        claimBtn.addEventListener('click', () => {
+            if (score >= 100) {
+                tg.sendData(score.toString());
+                localStorage.setItem('burger_score', '0');
+                tg.close();
+            } else {
+                tg.showAlert("Натапай хоча б 100 монет!");
+            }
+        });
+    </script>
 </body>
 </html>
+
