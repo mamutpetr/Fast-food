@@ -147,8 +147,14 @@ def get_poster_order_status(incoming_order_id):
     res = poster_request("incomingOrders.getIncomingOrder", "GET", {"incoming_order_id": incoming_order_id})
     if res and "response" in res and res["response"]:
         order_info = res["response"]
-        poster_status = int(order_info.get("status", 0))
         
+        # Безпечна перевірка статусу, щоб уникнути помилки TypeError: 'NoneType'
+        raw_status = order_info.get("status")
+        try:
+            poster_status = int(raw_status) if raw_status is not None else 0
+        except (ValueError, TypeError):
+            poster_status = 0
+            
         # 0 = Нове, 1 = Прийнято на касі, 2 = Відхилено/Скасовано
         if poster_status == 1:
             # Якщо замовлення прийнято, перевіряємо статус самої транзакції (чека)
@@ -896,7 +902,7 @@ def my_orders_handler(message):
                 db_update_order_status(poster_order_id, 'closed')
                 local_status = 'closed'
         else:
-            status_text = "❓ Невідомо"
+            status_text = "❓ Невідомо / Видалено"
 
         markup = None
         # Кнопка скасування доступна ТІЛЬКИ якщо замовлення ще висить як Нове (0)
