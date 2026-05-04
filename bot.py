@@ -135,6 +135,21 @@ def create_poster_client_full(user_id):
             
     return res
 
+def cancel_poster_order(incoming_order_id):
+    # Статус 3 у Poster зазвичай означає скасоване замовлення. 
+    # В деяких налаштуваннях може бути rejectIncomingOrder
+    payload = {
+        "incoming_order_id": incoming_order_id,
+        "status": 3 
+    }
+    return poster_request("incomingOrders.setIncomingOrderStatus", "POST", payload)
+
+def get_poster_order_status(incoming_order_id):
+    res = poster_request("incomingOrders.getIncomingOrder", "GET", {"incoming_order_id": incoming_order_id})
+    if res and "response" in res and res["response"]:
+        return res["response"].get("status")
+    return None
+
 # --- БАЗА ДАНИХ ---
 def init_db():
     with sqlite3.connect("burger_chef.db") as conn:
@@ -147,12 +162,34 @@ def init_db():
                      (user_id INTEGER, role TEXT, content TEXT)''')
         c.execute('''CREATE TABLE IF NOT EXISTS inventory 
                      (product_key TEXT PRIMARY KEY, total_qty INTEGER DEFAULT 0)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS orders
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, poster_order_id INTEGER, status TEXT DEFAULT 'active', created_at DATETIME)''')
         
         try: c.execute("ALTER TABLE users ADD COLUMN phone TEXT")
         except: pass
 
         for key in PRODUCTS.keys():
             c.execute("INSERT OR IGNORE INTO inventory (product_key, total_qty) VALUES (?, 50)", (key,))
+        conn.commit()
+
+def db_create_order(user_id, poster_order_id):
+    with sqlite3.connect("burger_chef.db") as conn:
+        c = conn.cursor()
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        c.execute("INSERT INTO orders (user_id, poster_order_id, status, created_at) VALUES (?, ?, 'active', ?)", 
+                  (user_id, poster_order_id, now_str))
+        conn.commit()
+
+def db_get_user_orders(user_id):
+    with sqlite3.connect("burger_chef.db") as conn:
+        c = conn.cursor()
+        c.execute("SELECT id, poster_order_id, status, created_at FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 5", (user_id,))
+        return c.fetchall()
+
+def db_update_order_status(poster_order_id, new_status):
+    with sqlite3.connect("burger_chef.db") as conn:
+        c = conn.cursor()
+        c.execute("UPDATE orders SET status = ? WHERE poster_order_id = ?", (new_status, poster_order_id))
         conn.commit()
 
 def db_cleanup_expired():
@@ -242,7 +279,7 @@ def db_manage_history(user_id, role=None, content=None):
         c.execute("SELECT role, content FROM ai_history WHERE user_id = ? ORDER BY rowid ASC", (user_id,))
         return [{"role": row[0], "content": row[1]} for row in c.fetchall()]
 
-# --- ТОВАРИ ---
+# --- ТОВАРИ (Замінено ID 100 на 7 для тестів) ---
 CATEGORIES = {
     "burgers": "🍔 Бургери", 
     "wok": "🥢 Локшина WOK", 
@@ -252,7 +289,7 @@ CATEGORIES = {
 }
 
 PRODUCTS = {
-    "100": {"poster_id": 100, "name": "Бургер Houston", "price": 299, "image": "houston.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Класичний смак Burger Chef", "info": "🍔 **Бургер Houston:** Соковита котлета, свіжі овочі та фірмовий соус."},
+    "7": {"poster_id": 7, "name": "Бургер Houston", "price": 299, "image": "houston.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Класичний смак Burger Chef", "info": "🍔 **Бургер Houston:** Соковита котлета, свіжі овочі та фірмовий соус."},
     "101": {"poster_id": 101, "name": "Бургер N.Y. Doubt", "price": 279, "image": "ny.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Нью-Йоркський стиль", "info": "🍔 **Бургер N.Y. Doubt:** Для тих, хто цінує класику великого міста."},
     "102": {"poster_id": 102, "name": "Бургер Magnum", "price": 279, "image": "magnum.jpg", "category": "burgers", "prep_time": "12-15 хв", "short": "Великий та ситний", "info": "🍔 **Бургер Magnum:** Подвійна порція задоволення."},
     "103": {"poster_id": 103, "name": "Бургер Big Tasty", "price": 299, "image": "tasty.jpg", "category": "burgers", "prep_time": "10-15 хв", "short": "Легендарний смак", "info": "🍔 **Бургер Big Tasty:** Спеціальний соус та багато сиру."},
@@ -323,9 +360,9 @@ def generate_customer_barcode(phone_number):
 def main_menu():
     m = types.ReplyKeyboardMarkup(resize_keyboard=True)
     m.row("📂 Каталог", "🛒 Кошик")
-    m.row("🧮 Калькулятор ситості", "👤 Профіль")
+    m.row("📋 Мої замовлення", "👤 Профіль")
     m.row(types.KeyboardButton("🍔 Натапати знижку", web_app=types.WebAppInfo(url=WEB_APP_URL)))
-    m.row("📞 Консультант", "📰 Новини")
+    m.row("🧮 Калькулятор ситості", "📞 Консультант")
     return m
 
 def contact_menu():
@@ -349,7 +386,6 @@ def start(message):
                 c.execute("UPDATE users SET referred_by = ? WHERE user_id = ?", (referrer_id, user_id))
                 conn.commit()
 
-    # Якщо в користувача ще немає телефону (він новий) - запускаємо квест!
     if user_data[0] is None:
         user_data_cache[user_id] = {'step': 'quest_step_1'}
         bot.send_message(
@@ -497,7 +533,7 @@ def calc_result(call):
     text = (f"📊 **Ваш розрахунок:**\n🍽 Рівень: **{DOSAGE_DATA[diag_key]['name']}**\n⚖️ Вага: **{weight} кг**\n🎯 Рекомендовано: **{dose}0 калорій**\n\n"
             f"🌶 **Рівень гостроти ({conc}%):**\n• Ідеально підійдуть наші фірмові бургери та WOK!\n\n💡 *Порада: Додайте десерт для ідеального балансу.*")
     markup = types.InlineKeyboardMarkup(row_width=1)
-    if db_get_stock("100") > 0: markup.add(types.InlineKeyboardButton(f"🛒 Додати Бургер Houston", callback_data=f"buy_100"))
+    if db_get_stock("7") > 0: markup.add(types.InlineKeyboardButton(f"🛒 Додати Бургер Houston", callback_data=f"buy_7"))
     if db_get_stock("103") > 0: markup.add(types.InlineKeyboardButton(f"🛒 Додати Бургер Big Tasty", callback_data=f"buy_103"))
     markup.add(types.InlineKeyboardButton("🔄 Розрахувати заново", callback_data="calc_back"))
     bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
@@ -667,6 +703,12 @@ def process_pickup_order(user_id):
     if res_order and "error" in res_order:
         bot.send_message(user_id, "⚠️ Сталася помилка при створенні броні. Зв'яжіться з адміністратором.")
         return
+        
+    if res_order and "response" in res_order:
+        inc_order_id = res_order["response"]
+        if type(inc_order_id) == dict:
+            inc_order_id = inc_order_id.get("incoming_order_id")
+        db_create_order(user_id, inc_order_id)
     
     db_confirm_purchase(user_id)
     
@@ -782,8 +824,13 @@ def success(message):
         if client_poster:
             order_data_poster["client_id"] = client_poster["client_id"]
             
-        poster_request("incomingOrders.createIncomingOrder", "POST", order_data_poster)
-        
+        res_order = poster_request("incomingOrders.createIncomingOrder", "POST", order_data_poster)
+        if res_order and "response" in res_order:
+            inc_order_id = res_order["response"]
+            if type(inc_order_id) == dict:
+                inc_order_id = inc_order_id.get("incoming_order_id")
+            db_create_order(user_id, inc_order_id)
+            
         if client_poster:
             if used_poster_bonus_uah > 0:
                 add_poster_bonus(client_poster['client_id'], -used_poster_bonus_uah)
@@ -798,6 +845,63 @@ def success(message):
         
     if user_id in user_data_cache:
         del user_data_cache[user_id]
+
+# --- МОЇ ЗАМОВЛЕННЯ ---
+@bot.message_handler(func=lambda m: m.text == "📋 Мої замовлення")
+def my_orders_handler(message):
+    user_id = message.chat.id
+    orders = db_get_user_orders(user_id)
+    
+    if not orders:
+        bot.send_message(user_id, " У вас ще немає замовлень.")
+        return
+
+    bot.send_message(user_id, "⏳ Оновлюємо статуси з каси...")
+    
+    for order in orders:
+        local_id, poster_order_id, local_status, created_at = order
+        
+        # Запитуємо свіжий статус з постеру
+        poster_status_code = get_poster_order_status(poster_order_id)
+        
+        if poster_status_code is not None:
+            # Мапінг статусів: 0 - Нове, 1 - Готується, 2 - В дорозі/Готове, 3 - Відхилено/Скасовано, 4 - Закрито
+            if poster_status_code == 0: status_text = "🆕 Нове"
+            elif poster_status_code == 1: status_text = "🔥 Готується"
+            elif poster_status_code == 2: status_text = "✅ Готове / Доставляється"
+            elif poster_status_code == 3: status_text = "❌ Скасоване"
+            elif poster_status_code == 4: status_text = "🏁 Виконане"
+            else: status_text = "🔄 Обробляється"
+            
+            # Якщо статус змінився на термінальний, оновлюємо локальну базу
+            if poster_status_code in [3, 4] and local_status != 'closed':
+                db_update_order_status(poster_order_id, 'closed')
+                local_status = 'closed'
+        else:
+            status_text = "❓ Невідомо"
+
+        markup = None
+        # Дозволяємо скасування тільки якщо воно нове (0) або статус не оновився
+        if local_status == 'active' and poster_status_code in [0, None]:
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton("❌ Скасувати замовлення", callback_data=f"cancelord_{poster_order_id}"))
+
+        text = f"📦 **Замовлення #{poster_order_id}**\n🗓 Дата: {created_at}\n📊 Статус у закладі: **{status_text}**"
+        bot.send_message(user_id, text, reply_markup=markup, parse_mode="Markdown")
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("cancelord_"))
+def handle_cancel_order(call):
+    poster_order_id = int(call.data.split("_")[1])
+    
+    # Надсилаємо запит у Poster на скасування
+    res = cancel_poster_order(poster_order_id)
+    
+    if res and not res.get("error"):
+        db_update_order_status(poster_order_id, 'closed')
+        bot.answer_callback_query(call.id, "✅ Замовлення успішно скасоване!")
+        bot.edit_message_text(f"{call.message.text}\n\n❗️ **Оновлено: Ви скасували це замовлення.**", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+    else:
+        bot.answer_callback_query(call.id, "⚠️ Не вдалося скасувати! Можливо його вже готують. Зверніться до підтримки.", show_alert=True)
 
 # --- АДМІНКА ТА СКАНУВАННЯ QR ---
 @bot.message_handler(commands=['admin'])
@@ -905,16 +1009,13 @@ def handle_all_text(message):
         state = user_data_cache[user_id]
         step = state['step']
 
-        # ЛОГІКА КВЕСТУ
         if step == 'quest_step_1':
-            # Якщо людина тицяє меню, дозволяємо їй це робити
-            if text in ["📂 Каталог", "🛒 Кошик", "🧮 Калькулятор ситості", "👤 Профіль", "🍔 Натапати знижку", "📞 Консультант", "📰 Новини", "⬅️ Назад до меню"]:
+            if text in ["📂 Каталог", "🛒 Кошик", "🧮 Калькулятор ситості", "👤 Профіль", "🍔 Натапати знижку", "📞 Консультант", "📰 Новини", "📋 Мої замовлення", "⬅️ Назад до меню"]:
                 pass 
             else:
-                # Вважаємо будь-який інший текст відповіддю на квест
                 user_db = db_manage_user(user_id)
                 current_discount = user_db[1] if user_db[1] else 0
-                db_manage_user(user_id, discount=current_discount + 20) # Даємо 20 грн локально
+                db_manage_user(user_id, discount=current_discount + 20)
                 
                 state['step'] = 'register_phone'
                 bot.send_message(
@@ -985,7 +1086,7 @@ def handle_all_text(message):
             send_invoice(user_id)
             return
 
-    if message.text in ["📂 Каталог", "🛒 Кошик", "📞 Консультант", "🍔 Натапати знижку", "📰 Новини", "🧮 Калькулятор ситості", "👤 Профіль"]: 
+    if message.text in ["📂 Каталог", "🛒 Кошик", "📞 Консультант", "🍔 Натапати знижку", "📰 Новини", "🧮 Калькулятор ситості", "👤 Профіль", "📋 Мої замовлення"]: 
         if message.text == "📰 Новини": 
             return bot.send_message(message.chat.id, "🍔 Burger Chef вітає вас! В нас найсмачніші бургери та WOK у місті.")
         if message.text == "📞 Консультант":
@@ -997,7 +1098,7 @@ def handle_all_text(message):
                 try:
                     bot.send_message(ADMIN_ID, f"🙋‍♂️ **Запит на живу консультацію!**\n\nКлієнт: {username}{phone_info}\nНапишіть йому в особисті повідомлення.", parse_mode="Markdown")
                 except Exception as e:
-                    print(f"Не вдалося відправити повідомлення адміну: {e}")
+                    pass
             return
         return
     
