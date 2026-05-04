@@ -136,18 +136,38 @@ def create_poster_client_full(user_id):
     return res
 
 def cancel_poster_order(incoming_order_id):
-    # Статус 3 у Poster зазвичай означає скасоване замовлення. 
-    # В деяких налаштуваннях може бути rejectIncomingOrder
+    # У Poster API статус 2 — це відхилене/скасоване замовлення
     payload = {
         "incoming_order_id": incoming_order_id,
-        "status": 3 
+        "status": 2
     }
     return poster_request("incomingOrders.setIncomingOrderStatus", "POST", payload)
 
 def get_poster_order_status(incoming_order_id):
     res = poster_request("incomingOrders.getIncomingOrder", "GET", {"incoming_order_id": incoming_order_id})
     if res and "response" in res and res["response"]:
-        return res["response"].get("status")
+        order_info = res["response"]
+        poster_status = int(order_info.get("status", 0))
+        
+        # 0 = Нове, 1 = Прийнято на касі, 2 = Відхилено/Скасовано
+        if poster_status == 1:
+            # Якщо замовлення прийнято, перевіряємо статус самої транзакції (чека)
+            transaction_id = order_info.get("transaction_id")
+            if transaction_id:
+                tx_res = poster_request("dash.getTransaction", "GET", {"transaction_id": transaction_id})
+                if tx_res and "response" in tx_res and tx_res["response"]:
+                    # Poster може повертати об'єкт або список
+                    tx_data = tx_res["response"][0] if isinstance(tx_res["response"], list) else tx_res["response"]
+                    tx_status = str(tx_data.get("status", ""))
+                    
+                    # Статус 3 у транзакціях Poster означає, що чек закрито (оплачено)
+                    if tx_status == "3": 
+                        return 4 # Наш внутрішній код для "Закрито"
+            return 1 # Якщо транзакція ще не закрита, значить все ще готується
+        elif poster_status == 2:
+            return 3 # Наш внутрішній код для "Скасовано"
+            
+        return poster_status # Якщо 0 (Нове), просто повертаємо 0
     return None
 
 # --- БАЗА ДАНИХ ---
@@ -853,7 +873,7 @@ def my_orders_handler(message):
     orders = db_get_user_orders(user_id)
     
     if not orders:
-        bot.send_message(user_id, " У вас ще немає замовлень.")
+        bot.send_message(user_id, "🛒 У вас ще немає замовлень.")
         return
 
     bot.send_message(user_id, "⏳ Оновлюємо статуси з каси...")
@@ -861,19 +881,17 @@ def my_orders_handler(message):
     for order in orders:
         local_id, poster_order_id, local_status, created_at = order
         
-        # Запитуємо свіжий статус з постеру
         poster_status_code = get_poster_order_status(poster_order_id)
         
         if poster_status_code is not None:
-            # Мапінг статусів: 0 - Нове, 1 - Готується, 2 - В дорозі/Готове, 3 - Відхилено/Скасовано, 4 - Закрито
-            if poster_status_code == 0: status_text = "🆕 Нове"
+            # 0 - Нове, 1 - Готується, 3 - Скасоване, 4 - Виконане (Закрито)
+            if poster_status_code == 0: status_text = "🆕 Нове (Очікує підтвердження)"
             elif poster_status_code == 1: status_text = "🔥 Готується"
-            elif poster_status_code == 2: status_text = "✅ Готове / Доставляється"
             elif poster_status_code == 3: status_text = "❌ Скасоване"
-            elif poster_status_code == 4: status_text = "🏁 Виконане"
+            elif poster_status_code == 4: status_text = "🏁 Виконане / Закрите"
             else: status_text = "🔄 Обробляється"
             
-            # Якщо статус змінився на термінальний, оновлюємо локальну базу
+            # Оновлюємо локальну базу, якщо статус змінився на фінальний
             if poster_status_code in [3, 4] and local_status != 'closed':
                 db_update_order_status(poster_order_id, 'closed')
                 local_status = 'closed'
@@ -881,12 +899,12 @@ def my_orders_handler(message):
             status_text = "❓ Невідомо"
 
         markup = None
-        # Дозволяємо скасування тільки якщо воно нове (0) або статус не оновився
-        if local_status == 'active' and poster_status_code in [0, None]:
+        # Кнопка скасування доступна ТІЛЬКИ якщо замовлення ще висить як Нове (0)
+        if local_status == 'active' and poster_status_code == 0:
             markup = types.InlineKeyboardMarkup()
             markup.add(types.InlineKeyboardButton("❌ Скасувати замовлення", callback_data=f"cancelord_{poster_order_id}"))
 
-        text = f"📦 **Замовлення #{poster_order_id}**\n🗓 Дата: {created_at}\n📊 Статус у закладі: **{status_text}**"
+        text = f"📦 **Замовлення #{poster_order_id}**\n🗓 Дата: {created_at}\n📊 Статус: **{status_text}**"
         bot.send_message(user_id, text, reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("cancelord_"))
